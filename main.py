@@ -56,6 +56,29 @@ def menu(): # Menu system
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
 
+def make_function(expr):
+    def _f(x):
+        local = {"x": x}
+        return eval(expr, {"__builtins__": None, "math": math, "np": np}, local)
+    return np.vectorize(_f)
+
+def separate_coordinates(coordinate_list):
+    x_vals = []
+    y_vals = []
+
+    for coordinate in coordinate_list:
+        x_vals.append(coordinate[0])
+        y_vals.append(coordinate[1])
+
+    return x_vals,y_vals
+
 # Main loop
 welcome()
+
 menu()
+while True:
+    if menu_num == 1:
+        integration_single()
+    elif menu_num == 2:
+        integration_double()
+    menu()
