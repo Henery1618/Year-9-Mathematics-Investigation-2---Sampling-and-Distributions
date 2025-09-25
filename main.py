@@ -77,26 +77,42 @@ def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, 
     ys = f_vec(xs)
 
     plt.figure(figsize=(6, 6))
-    plt.plot(xs, ys, color='black', label='y = f(x)')
+    plt.plot(xs, ys, color="black", label="y = f(x)")
 
     if over_coords:
         over_x, over_y = separate_coordinates(over_coords)
-        plt.scatter(over_x, over_y, color='red', s=1, label='Above curve')
+        plt.scatter(over_x, over_y, color="red", s=1, label="Above curve")
     if under_coords:
         under_x, under_y = separate_coordinates(under_coords)
-        plt.scatter(under_x, under_y, color='blue', s=1, label='Under curve')
+        plt.scatter(under_x, under_y, color="blue", s=1, label="Under curve")
 
     plt.xlim(x_min, x_max)
     plt.ylim(y_min, y_max)
     plt.legend()
     plt.title(title)
-    plt.xlabel('x')
-    plt.ylabel('y')
+    plt.xlabel("x")
+    plt.ylabel("y")
     plt.grid(True)
     plt.show()
 
 def integration_single():
-    pass
+    expr = input(colored("Enter f(x) (e.g. '10' or 'x**2'): ", "blue", "on_black"))
+    f_vec = make_function(expr)
+    x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0)
+    x_max = float(input(colored("x_max (default 20): ", "blue", "on_black")) or 20)
+    y_min = float(input(colored("y_min (default 0): ", "blue", "on_black")) or 0)
+    y_max = float(input(colored("y_max (default 20): ", "blue", "on_black")) or 20)
+    amount_samples = int(input(colored("Number of random samples (default 10000): ", "blue", "on_black")) or 10000)
+    xs = np.random.uniform(x_min, x_max, amount_samples)
+    ys = np.random.uniform(y_min, y_max, amount_samples)
+    f_vals = f_vec(xs)
+    count_under = np.sum(ys <= f_vals)
+    area_box = (x_max - x_min) * (y_max - y_min)
+    estimate = (count_under / amount_samples) * area_box
+    cprint(f"Monte Carlo Estimate: {estimate:.5f}", "green", "on_black")
+    plot_function(f_vec, x_min, x_max, y_min, y_max,
+                  under_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y <= f_val],
+                  over_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y > f_val])
 
 def integration_double():
     pass
