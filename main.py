@@ -72,6 +72,35 @@ def separate_coordinates(coordinate_list):
 
     return x_vals,y_vals
 
+def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, title="Monte Carlo Estimate of Area Under Curve"):
+    xs = np.linspace(x_min, x_max, 500)
+    ys = f_vec(xs)
+
+    plt.figure(figsize=(6, 6))
+    plt.plot(xs, ys, color='black', label='y = f(x)')
+
+    if over_coords:
+        over_x, over_y = separate_coordinates(over_coords)
+        plt.scatter(over_x, over_y, color='red', s=1, label='Above curve')
+    if under_coords:
+        under_x, under_y = separate_coordinates(under_coords)
+        plt.scatter(under_x, under_y, color='blue', s=1, label='Under curve')
+
+    plt.xlim(x_min, x_max)
+    plt.ylim(y_min, y_max)
+    plt.legend()
+    plt.title(title)
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.grid(True)
+    plt.show()
+
+def integration_single():
+    pass
+
+def integration_double():
+    pass
+
 # Main loop
 welcome()
 
