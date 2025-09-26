@@ -1,5 +1,4 @@
 # import libraries
-import random
 import math
 import numpy as np
 import matplotlib.pyplot as plt
@@ -72,12 +71,15 @@ def separate_coordinates(coordinate_list):
 
     return x_vals,y_vals
 
-def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, title="Monte Carlo Estimate of Area Under Curve"):
+def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, two_lines, title="Monte Carlo Estimate of Area Under Curve"):
     xs = np.linspace(x_min, x_max, 500)
     ys = f_vec(xs)
 
     plt.figure(figsize=(6, 6))
     plt.plot(xs, ys, color="black", label="y = f(x)")
+    if two_lines:
+        ys2 = two_lines(xs)
+        plt.plot(xs, ys2, color="green", label="y = g(x)")
 
     if over_coords:
         over_x, over_y = separate_coordinates(over_coords)
@@ -112,10 +114,33 @@ def integration_single():
     cprint(f"Monte Carlo Estimate: {estimate:.5f}", "green", "on_black")
     plot_function(f_vec, x_min, x_max, y_min, y_max,
                   under_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y <= f_val],
-                  over_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y > f_val])
+                  over_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y > f_val],
+                  two_lines=None,
+                  title="Monte Carlo Estimate of Area Under Curve")
 
 def integration_double():
-    pass
+    expr1 = input(colored("Enter f1(x) (e.g. '10' or 'x**2'): ", "blue", "on_black"))
+    expr2 = input(colored("Enter f2(x) (e.g. '5' or 'x'): ", "blue", "on_black"))
+    f1_vec = make_function(expr1)
+    f2_vec = make_function(expr2)
+    x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0)
+    x_max = float(input(colored("x_max (default 20): ", "blue", "on_black")) or 20)
+    y_min = float(input(colored("y_min (default 0): ", "blue", "on_black")) or 0)
+    y_max = float(input(colored("y_max (default 20): ", "blue", "on_black")) or 20)
+    amount_samples = int(input(colored("Number of random samples (default 10000): ", "blue", "on_black")) or 10000)
+    xs = np.random.uniform(x_min, x_max, amount_samples)
+    ys = np.random.uniform(y_min, y_max, amount_samples)
+    f1_vals = f1_vec(xs)
+    f2_vals = f2_vec(xs)
+    count_under = np.sum((ys <= f1_vals) & (ys >= f2_vals))
+    area_box = (x_max - x_min) * (y_max - y_min)
+    estimate = (count_under / amount_samples) * area_box
+    cprint(f"Monte Carlo Estimate: {estimate:.5f}", "green", "on_black")
+    plot_function(f1_vec, x_min, x_max, y_min, y_max,
+                  under_coords=[(x, y) for x, y, f1_val, f2_val in zip(xs, ys, f1_vals, f2_vals) if y <= f1_val and y >= f2_val],
+                  over_coords=[(x, y) for x, y, f1_val, f2_val in zip(xs, ys, f1_vals, f2_vals) if not (y <= f1_val and y >= f2_val)],
+                  two_lines=f2_vec,
+                  title="Monte Carlo Estimate of Area Between Two Curves")
 
 # Main loop
 welcome()
