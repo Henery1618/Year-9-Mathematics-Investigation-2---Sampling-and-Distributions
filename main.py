@@ -148,21 +148,35 @@ def integration_double():
 
 
 def image_pixel_sampling(path):
+    num_samples = 5000
     img = Image.open(path)
     img = img.convert("RGB")
     pixels = img.load()
     width, height = img.size
-
     color_counts = {}
-    num_samples = 5000
     for i in range(num_samples):
         rand_x = random.randint(0, width - 1)
         rand_y = random.randint(0, height - 1)
         color = pixels[rand_x, rand_y]
         # color is an (R, G, B) tuple
         color_counts[color] = color_counts.get(color, 0) + 1
-
     return color_counts
+
+def plot_color_distribution(color_counts, top_n=12):
+    sorted_colors = sorted(color_counts.items(), key=lambda x: x[1], reverse=True)
+    top = sorted_colors[:top_n]
+    labels = ["#%02x%02x%02x" % c for c, _ in top]
+    counts = [cnt for _, cnt in top]
+    bar_colors = [(c[0] / 255, c[1] / 255, c[2] / 255) for c, _ in top]
+
+    plt.figure(figsize=(max(8, len(labels) * 0.4), 5))
+    x = np.arange(len(labels))
+    plt.bar(x, counts, color=bar_colors, edgecolor='black', linewidth=0.8)
+    plt.xticks(x, labels, rotation=90)
+    plt.title(f"Top {len(labels)} sampled colors")
+    plt.ylabel("Sample count")
+    plt.tight_layout()
+    plt.show()
 
 
 welcome()
@@ -173,8 +187,9 @@ while True:
     elif menu_num == 2:
         integration_double()
     elif menu_num == 3:
-        path = input(colored("Enter the image file path: ", "blue", "on_black"))
+        path = input(colored(f"Enter the image file path: ", "blue", "on_black"))
         color_distribution = image_pixel_sampling(path)
-        for color, count in color_distribution.items():
+        plot_color_distribution(color_distribution)
+        for color, count in sorted(color_distribution.items(), key=lambda x: x[1], reverse=True):
             print(f"Color {color}: {count} samples")
     menu()
