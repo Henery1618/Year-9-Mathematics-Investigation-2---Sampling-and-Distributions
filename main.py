@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from termcolor import *
 import time
 import sys
+import random
+from PIL import Image, ImageDraw
 
 # Initialize variables
 menu_num = None
@@ -49,8 +51,10 @@ def menu(): # Menu system
     cprint("Please select an option:", "green", "on_black")
     cprint("1. Approximating Integration using Monte Carlo Estimate", "green", "on_black")
     cprint("2. Approximating Integration between two functions using Monte Carlo Estimate", "green", "on_black")
+    cprint("3. Sampling Pixels in an Image", "green", "on_black")
+    cprint("Type 'quit' anytime to exit the program.", "red", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 2:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 3:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
@@ -142,13 +146,35 @@ def integration_double():
                   two_lines=f2_vec,
                   title="Monte Carlo Estimate of Area Between Two Curves")
 
-# Main loop
-welcome()
 
+def image_pixel_sampling(path):
+    img = Image.open(path)
+    img = img.convert("RGB")
+    pixels = img.load()
+    width, height = img.size
+
+    color_counts = {}
+    num_samples = 5000
+    for i in range(num_samples):
+        rand_x = random.randint(0, width - 1)
+        rand_y = random.randint(0, height - 1)
+        color = pixels[rand_x, rand_y]
+        # color is an (R, G, B) tuple
+        color_counts[color] = color_counts.get(color, 0) + 1
+
+    return color_counts
+
+
+welcome()
 menu()
 while True:
     if menu_num == 1:
         integration_single()
     elif menu_num == 2:
         integration_double()
+    elif menu_num == 3:
+        path = input(colored("Enter the image file path: ", "blue", "on_black"))
+        color_distribution = image_pixel_sampling(path)
+        for color, count in color_distribution.items():
+            print(f"Color {color}: {count} samples")
     menu()
