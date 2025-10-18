@@ -53,9 +53,10 @@ def menu(): # Menu system
     cprint("2. Approximating Integration between two functions using Monte Carlo Estimate", "green", "on_black")
     cprint("3. Sampling Pixels in an Image", "green", "on_black")
     cprint("4. Determine Area of Lightning Bolt Image", "green", "on_black")
+    cprint("5. Determine Area of Dart Board Image", "green", "on_black")
     cprint("Type 'quit' anytime to exit the program.", "red", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 4:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 5:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
@@ -186,9 +187,14 @@ def plot_color_distribution(color_counts, top_n=12): # For debugging
     plt.tight_layout()
     plt.show()
 
-def determine_area(image, target_color, total_pixels):
-    target_pixels = image.get(target_color, 0)
-    area_percentage = (target_pixels / total_pixels) * 100
+def determine_area(image, target_color, total_pixels, whitelist_colors):
+    if whitelist_colors:
+        target_pixels = image.get(target_color, 0)
+        area_percentage = (target_pixels / total_pixels) * 100
+    else:
+        target_pixels = sum(count for color, count in image.items() if color != target_color)
+        area_percentage = (target_pixels / total_pixels) * 100
+
     return area_percentage
 
 welcome()
@@ -205,6 +211,9 @@ while True:
         for color, count in sorted(color_distribution.items(), key=lambda x: x[1], reverse=True):
             print(f"Color {color}: {count} samples")
     elif menu_num == 4:
-        bolt_percentage = determine_area(image_pixel_sampling("Student Resources/2.0 Lightning Bolt/bolt.png", True), (255, 255, 54), 5000)
+        bolt_percentage = determine_area(image_pixel_sampling("Student Resources/2.0 Lightning Bolt/bolt.png", True), (255, 255, 54), 5000, True)
         cprint(f"Estimated area of lightning bolt: {bolt_percentage:.2f}%", "green", "on_black")
+    elif menu_num == 5:
+        target_percentage = determine_area(image_pixel_sampling("Student Resources/3.0 Dart Board/3.1.png", True), (255, 255, 255), 5000, False)
+        cprint(f"Estimated area of dart board (non-background): {target_percentage:.2f}%", "green", "on_black")
     menu()
