@@ -52,9 +52,10 @@ def menu(): # Menu system
     cprint("1. Approximating Integration using Monte Carlo Estimate", "green", "on_black")
     cprint("2. Approximating Integration between two functions using Monte Carlo Estimate", "green", "on_black")
     cprint("3. Sampling Pixels in an Image", "green", "on_black")
+    cprint("4. Determine Area of Lightning Bolt Image", "green", "on_black")
     cprint("Type 'quit' anytime to exit the program.", "red", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 3:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 4:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
@@ -147,22 +148,29 @@ def integration_double():
                   title="Monte Carlo Estimate of Area Between Two Curves")
 
 
-def image_pixel_sampling(path):
+def image_pixel_sampling(path, replace_color):
     num_samples = 5000
     img = Image.open(path)
     img = img.convert("RGB")
     pixels = img.load()
     width, height = img.size
     color_counts = {}
+    pixels_used = []
     for i in range(num_samples):
         rand_x = random.randint(0, width - 1)
         rand_y = random.randint(0, height - 1)
         color = pixels[rand_x, rand_y]
         # color is an (R, G, B) tuple
         color_counts[color] = color_counts.get(color, 0) + 1
+        pixels_used.append((rand_x, rand_y))
+    if replace_color:
+        draw = ImageDraw.Draw(img)
+        for (x, y) in pixels_used:
+            draw.point((x, y), fill=(255, 0, 0))  # Replace sampled pixels with red
+        img.show()
     return color_counts
 
-def plot_color_distribution(color_counts, top_n=12):
+def plot_color_distribution(color_counts, top_n=12): # For debugging
     sorted_colors = sorted(color_counts.items(), key=lambda x: x[1], reverse=True)
     top = sorted_colors[:top_n]
     labels = ["#%02x%02x%02x" % c for c, _ in top]
@@ -178,6 +186,10 @@ def plot_color_distribution(color_counts, top_n=12):
     plt.tight_layout()
     plt.show()
 
+def determine_area(image, target_color, total_pixels):
+    target_pixels = image.get(target_color, 0)
+    area_percentage = (target_pixels / total_pixels) * 100
+    return area_percentage
 
 welcome()
 menu()
@@ -188,8 +200,11 @@ while True:
         integration_double()
     elif menu_num == 3:
         path = input(colored(f"Enter the image file path: ", "blue", "on_black"))
-        color_distribution = image_pixel_sampling(path)
+        color_distribution = image_pixel_sampling(path, True)
         plot_color_distribution(color_distribution)
         for color, count in sorted(color_distribution.items(), key=lambda x: x[1], reverse=True):
             print(f"Color {color}: {count} samples")
+    elif menu_num == 4:
+        bolt_percentage = determine_area(image_pixel_sampling("Student Resources/2.0 Lightning Bolt/bolt.png", True), (255, 255, 54), 5000)
+        cprint(f"Estimated area of lightning bolt: {bolt_percentage:.2f}%", "green", "on_black")
     menu()
