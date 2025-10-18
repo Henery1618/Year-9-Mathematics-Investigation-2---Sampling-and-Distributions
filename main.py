@@ -56,9 +56,10 @@ def menu(): # Menu system
     cprint("5. Probability of Scoring 10 or More on Dart Board", "green", "on_black")
     cprint("6. Determine Area of Each Color in an Image", "green", "on_black")
     cprint("7. Time Until Outcome When Sampling Colors in an Image", "green", "on_black")
+    cprint("8. Average Time Until Outcome When Sampling Colors in an Image", "green", "on_black")
     cprint("Type 'quit' anytime to exit the program.", "red", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 7:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 8:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
@@ -251,6 +252,18 @@ while True:
         plt.hist(time_count)
         plt.title('Distribution of Values')
         plt.xlabel('Value')
+        plt.ylabel('Frequency')
+        plt.show()
+    elif menu_num == 8:
+        time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0))
+        averages = []
+        for i in range(0, len(time_count), 20):
+            group = time_count[i:i+20]
+            group_average = sum(group) / len(group)
+            averages.append(group_average)
+        plt.hist(averages, bins=20)
+        plt.title('Distribution of Averages (Groups of 20)')
+        plt.xlabel('Average Value')
         plt.ylabel('Frequency')
         plt.show()
     menu()
