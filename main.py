@@ -55,9 +55,10 @@ def menu(): # Menu system
     cprint("4. Determine Area of Dart Board Image", "green", "on_black")
     cprint("5. Probability of Scoring 10 or More on Dart Board", "green", "on_black")
     cprint("6. Determine Area of Each Color in an Image", "green", "on_black")
+    cprint("7. Time Until Outcome When Sampling Colors in an Image", "green", "on_black")
     cprint("Type 'quit' anytime to exit the program.", "red", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 6:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 7:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
@@ -149,7 +150,13 @@ def integration_double():
                   two_lines=f2_vec,
                   title="Monte Carlo Estimate of Area Between Two Curves")
 
-def image_pixel_sampling_by_color(path, replace_color):
+def replace_sampled_pixels(img, pixels_used):
+    draw = ImageDraw.Draw(img)
+    for (x, y) in pixels_used:
+        draw.point((x, y), fill=(255, 0, 0))  # Replace sampled pixels with red
+    img.show()
+
+def image_pixel_sampling_by_color(path):
     num_samples = 5000
     img = Image.open(path)
     img = img.convert("RGB")
@@ -164,14 +171,10 @@ def image_pixel_sampling_by_color(path, replace_color):
         # color is an (R, G, B) tuple
         color_counts[color] = color_counts.get(color, 0) + 1
         pixels_used.append((rand_x, rand_y))
-    if replace_color:
-        draw = ImageDraw.Draw(img)
-        for (x, y) in pixels_used:
-            draw.point((x, y), fill=(255, 0, 0))  # Replace sampled pixels with red
-        img.show()
+    replace_sampled_pixels(img, pixels_used)
     return color_counts
 
-def image_pixel_sampling_coordinates(path, replace_color):
+def image_pixel_sampling_coordinates(path):
     num_samples = 5000
     img = Image.open(path)
     width, height = img.size
@@ -180,11 +183,7 @@ def image_pixel_sampling_coordinates(path, replace_color):
         rand_x = random.randint(0, width - 1)
         rand_y = random.randint(0, height - 1)
         pixels_used.append((rand_x, rand_y))
-    if replace_color:
-        draw = ImageDraw.Draw(img)
-        for (x, y) in pixels_used:
-            draw.point((x, y), fill=(255, 0, 0))  # Replace sampled pixels with red
-        img.show()
+    replace_sampled_pixels(img, pixels_used)
     return pixels_used
 
 def determine_area(image, target_color, total_pixels, whitelist_colors):
@@ -200,6 +199,25 @@ def within_circle(x, y, center_x, center_y, radius):
     within = (x - center_x) ** 2 + (y - center_y) ** 2 <= radius ** 2
     return within
 
+def time_until_outcome(image_path, target_color):
+    time_until_pixel_found = []
+    pixels_used = []
+    img = Image.open(image_path)
+    for i in range(20000):
+        current_pixel_color = None
+        time_count = 0
+        while current_pixel_color != target_color:
+            rand_x = random.randint(0, img.size[0] - 1)
+            rand_y = random.randint(0, img.size[1] - 1)
+            current_pixel_color = img.convert("RGB").load()[rand_x, rand_y]
+            time_count += 1
+        time_until_pixel_found.append(time_count)
+        pixels_used.append((rand_x, rand_y))
+    with open("time_until_outcome_samples.txt", "w") as f:
+        for time_count in time_until_pixel_found:
+            f.write(f"{time_count}\n")
+    return time_until_pixel_found
+
 welcome()
 menu()
 while True:
@@ -208,24 +226,31 @@ while True:
     elif menu_num == 2:
         integration_double()
     elif menu_num == 3:
-        bolt_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/2.0 Lightning Bolt/bolt.png", True), (255, 255, 54), 5000, True)
+        bolt_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/2.0 Lightning Bolt/bolt.png"), (255, 255, 54), 5000, True)
         cprint(f"Estimated area of lightning bolt: {bolt_percentage:.2f}%", "green", "on_black")
     elif menu_num == 4:
-        target_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.1.png", True), (255, 255, 255), 5000, False)
+        target_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.1.png"), (255, 255, 255), 5000, False)
         cprint(f"Estimated area of dart board (non-background): {target_percentage:.2f}%", "green", "on_black")
     elif menu_num == 5:
         target_image = Image.open("Student Resources/3.0 Dart Board/3.1.png")
         r3 = target_image.size[0] / 2 / 5 * 3
         center_x, center_y = target_image.size[0] / 2, target_image.size[1] / 2
-        within_r3 = sum(1 for x, y in image_pixel_sampling_coordinates("Student Resources/3.0 Dart Board/3.1.png", True) if within_circle(x, y, center_x, center_y, r3))
+        within_r3 = sum(1 for x, y in image_pixel_sampling_coordinates("Student Resources/3.0 Dart Board/3.1.png") if within_circle(x, y, center_x, center_y, r3))
         cprint(f"Estimated probability of scoring 10 or more: {(within_r3 / 5000) * 100:.2f}%", "green", "on_black")
     elif menu_num == 6:
         target_colors = [(59, 163, 234), (247, 188, 43), (138, 219, 138), (238, 193, 165), (237, 49, 25), (0, 0, 0)]
         target_colors_words = ["Blue", "Gold", "Green", "Peach", "Red", "Black (Text)"]
-        determine_area_each_color_counts = image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.3.png", True)
+        determine_area_each_color_counts = image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.3.png")
         total_sampled_pixels = sum(determine_area_each_color_counts.values())
         for color, color_word in zip(target_colors, target_colors_words):
             area_percentage = determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True)
             cprint(f"Estimated area of color {color_word}: {area_percentage:.2f}%", "green", "on_black")
         cprint("Estimated area of background (not counted colors): {:.2f}%".format(100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)), "green", "on_black")
+    elif menu_num == 7:
+        time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0))
+        plt.hist(time_count)
+        plt.title('Distribution of Values')
+        plt.xlabel('Value')
+        plt.ylabel('Frequency')
+        plt.show()
     menu()
