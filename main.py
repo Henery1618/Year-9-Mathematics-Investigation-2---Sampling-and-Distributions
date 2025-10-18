@@ -86,7 +86,7 @@ def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, 
     plt.plot(xs, ys, color="black", label="y = f(x)")
     if two_lines:
         ys2 = two_lines(xs)
-        plt.plot(xs, ys2, color="green", label="y = g(x)")
+        plt.plot(xs, ys2, color="blue", label="y = g(x)")
 
     if over_coords:
         over_x, over_y = separate_coordinates(over_coords)
@@ -105,12 +105,12 @@ def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, 
     plt.show()
 
 def integration_single():
-    expr = input(colored("Enter f(x) (e.g. '10' or 'x**2'): ", "blue", "on_black"))
+    expr = input(colored("Enter f(x) (default x**2): ", "blue", "on_black")) or "x**2"
     f_vec = make_function(expr)
     x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0)
-    x_max = float(input(colored("x_max (default 20): ", "blue", "on_black")) or 20)
+    x_max = float(input(colored("x_max (default 3): ", "blue", "on_black")) or 3)
     y_min = float(input(colored("y_min (default 0): ", "blue", "on_black")) or 0)
-    y_max = float(input(colored("y_max (default 20): ", "blue", "on_black")) or 20)
+    y_max = float(input(colored("y_max (default 10): ", "blue", "on_black")) or 10)
     amount_samples = int(input(colored("Number of random samples (default 10000): ", "blue", "on_black")) or 10000)
     xs = np.random.uniform(x_min, x_max, amount_samples)
     ys = np.random.uniform(y_min, y_max, amount_samples)
@@ -126,14 +126,14 @@ def integration_single():
                   title="Monte Carlo Estimate of Area Under Curve")
 
 def integration_double():
-    expr1 = input(colored("Enter f1(x) (e.g. '10' or 'x**2'): ", "blue", "on_black"))
-    expr2 = input(colored("Enter f2(x) (e.g. '5' or 'x'): ", "blue", "on_black"))
+    expr1 = input(colored("Enter f1(x) (default 1/2*x+1): ", "blue", "on_black")) or "1/2*x+1"
+    expr2 = input(colored("Enter f2(x) (default (x-2)**2+0.5): ", "blue", "on_black")) or "(x-2)**2+0.5"
     f1_vec = make_function(expr1)
     f2_vec = make_function(expr2)
     x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0)
-    x_max = float(input(colored("x_max (default 20): ", "blue", "on_black")) or 20)
+    x_max = float(input(colored("x_max (default 4): ", "blue", "on_black")) or 4)
     y_min = float(input(colored("y_min (default 0): ", "blue", "on_black")) or 0)
-    y_max = float(input(colored("y_max (default 20): ", "blue", "on_black")) or 20)
+    y_max = float(input(colored("y_max (default 4): ", "blue", "on_black")) or 4)
     amount_samples = int(input(colored("Number of random samples (default 10000): ", "blue", "on_black")) or 10000)
     xs = np.random.uniform(x_min, x_max, amount_samples)
     ys = np.random.uniform(y_min, y_max, amount_samples)
