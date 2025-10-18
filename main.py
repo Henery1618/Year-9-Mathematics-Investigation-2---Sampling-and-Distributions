@@ -55,9 +55,10 @@ def menu(): # Menu system
     cprint("4. Determine Area of Lightning Bolt Image", "green", "on_black")
     cprint("5. Determine Area of Dart Board Image", "green", "on_black")
     cprint("6. Probability of Scoring 10 or More on Dart Board", "green", "on_black")
+    cprint("7. Determine Area of Each Color in an Image", "green", "on_black")
     cprint("Type 'quit' anytime to exit the program.", "red", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 6:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 7:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
@@ -207,10 +208,9 @@ def determine_area(image, target_color, total_pixels, whitelist_colors):
     if whitelist_colors:
         target_pixels = image.get(target_color, 0)
         area_percentage = (target_pixels / total_pixels) * 100
-    else:
+    elif not whitelist_colors:
         target_pixels = sum(count for color, count in image.items() if color != target_color)
         area_percentage = (target_pixels / total_pixels) * 100
-
     return area_percentage
 
 def within_circle(x, y, center_x, center_y, radius):
@@ -237,13 +237,18 @@ while True:
         target_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.1.png", True), (255, 255, 255), 5000, False)
         cprint(f"Estimated area of dart board (non-background): {target_percentage:.2f}%", "green", "on_black")
     elif menu_num == 6:
-        # blue = 59 163 234 or # 3BA3EA
-        # red = 237 49 25 or # ED3119
-        # orange = 247 188 43 or # F7BC2B
         target_image = Image.open("Student Resources/3.0 Dart Board/3.1.png")
         r3 = target_image.size[0] / 2 / 5 * 3
         center_x, center_y = target_image.size[0] / 2, target_image.size[1] / 2
         within_r3 = sum(1 for x, y in image_pixel_sampling_coordinates("Student Resources/3.0 Dart Board/3.1.png", True) if within_circle(x, y, center_x, center_y, r3))
         cprint(f"Estimated probability of scoring 10 or more: {(within_r3 / 5000) * 100:.2f}%", "green", "on_black")
-
+    elif menu_num == 7:
+        target_colors = [(59, 163, 234), (247, 188, 43), (138, 219, 138), (238, 193, 165), (237, 49, 25), (0, 0, 0)]
+        target_colors_words = ["Blue", "Gold", "Green", "Peach", "Red", "Black (Text)"]
+        determine_area_each_color_counts = image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.3.png", True)
+        total_sampled_pixels = sum(determine_area_each_color_counts.values())
+        for color, color_word in zip(target_colors, target_colors_words):
+            area_percentage = determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True)
+            cprint(f"Estimated area of color {color_word}: {area_percentage:.2f}%", "green", "on_black")
+        cprint("Estimated area of background (not counted colors): {:.2f}%".format(100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)), "green", "on_black")
     menu()
