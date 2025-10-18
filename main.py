@@ -64,206 +64,204 @@ def menu(): # Menu system
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
 
-def make_function(expr):
+def make_function(expr): # Create a vectorized function from a string expression
     def _f(x):
         local = {"x": x}
-        return eval(expr, {"__builtins__": None, "math": math, "np": np}, local)
+        return eval(expr, {"__builtins__": None, "math": math, "np": np}, local) # use math and numpy functions only
     return np.vectorize(_f)
 
-def separate_coordinates(coordinate_list):
+def separate_coordinates(coordinate_list): # Separate x and y coordinates from a list of (x, y) tuples
     x_vals = []
     y_vals = []
 
-    for coordinate in coordinate_list:
+    for coordinate in coordinate_list: # Iterate through each coordinate tuple
         x_vals.append(coordinate[0])
         y_vals.append(coordinate[1])
 
-    return x_vals,y_vals
+    return x_vals,y_vals # Return separate x and y lists
 
-def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, two_lines, title="Monte Carlo Estimate of Area Under Curve"):
-    xs = np.linspace(x_min, x_max, 500)
-    ys = f_vec(xs)
+def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, two_lines, title="Monte Carlo Estimate of Area Under Curve"): # Plot the function and sampled points
+    xs = np.linspace(x_min, x_max, 500) # Generate x values
+    ys = f_vec(xs) # Generate y values
 
     plt.figure(figsize=(6, 6))
-    plt.plot(xs, ys, color="black", label="y = f(x)")
-    if two_lines:
+    plt.plot(xs, ys, color="black", label="y = f(x)") # Plot the function
+
+    if two_lines: # If there is a second function to plot
         ys2 = two_lines(xs)
         plt.plot(xs, ys2, color="blue", label="y = g(x)")
 
-    if over_coords:
-        over_x, over_y = separate_coordinates(over_coords)
-        plt.scatter(over_x, over_y, color="red", s=1, label="Above curve")
-    if under_coords:
-        under_x, under_y = separate_coordinates(under_coords)
-        plt.scatter(under_x, under_y, color="blue", s=1, label="Under curve")
+    if over_coords: # If there are points above the curve
+        over_x, over_y = separate_coordinates(over_coords) # Separate x and y coordinates
+        plt.scatter(over_x, over_y, color="red", s=1, label="Above curve") # Plot points above the curve red
+    if under_coords: # If there are points below the curve
+        under_x, under_y = separate_coordinates(under_coords) # Separate x and y coordinates
+        plt.scatter(under_x, under_y, color="blue", s=1, label="Under curve") # Plot points below the curve blue
 
-    plt.xlim(x_min, x_max)
-    plt.ylim(y_min, y_max)
+    plt.xlim(x_min, x_max) # Set x limits
+    plt.ylim(y_min, y_max) # Set y limits
     plt.legend()
     plt.title(title)
     plt.xlabel("x")
     plt.ylabel("y")
     plt.grid(True)
-    plt.show()
+    plt.show() # Show the plot
 
-def integration_single():
-    expr = input(colored("Enter f(x) (default x**2): ", "blue", "on_black")) or "x**2"
-    f_vec = make_function(expr)
-    x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0)
+def integration_single(): # Single function integration using Monte Carlo
+    expr = input(colored("Enter f(x) (default x**2): ", "blue", "on_black")) or "x**2" # Get the function expression from the user, default is graded criteria function (default by pressing enter without typing anything)
+    f_vec = make_function(expr) # Create a vectorized function
+    x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0) # Get the x, y min and max from the user, default is within graded criteria
     x_max = float(input(colored("x_max (default 3): ", "blue", "on_black")) or 3)
     y_min = float(input(colored("y_min (default 0): ", "blue", "on_black")) or 0)
     y_max = float(input(colored("y_max (default 10): ", "blue", "on_black")) or 10)
-    amount_samples = int(input(colored("Number of random samples (default 10000): ", "blue", "on_black")) or 10000)
-    xs = np.random.uniform(x_min, x_max, amount_samples)
-    ys = np.random.uniform(y_min, y_max, amount_samples)
-    f_vals = f_vec(xs)
-    count_under = np.sum(ys <= f_vals)
-    area_box = (x_max - x_min) * (y_max - y_min)
-    estimate = (count_under / amount_samples) * area_box
+    amount_samples = int(input(colored("Number of random samples (default 10000): ", "blue", "on_black")) or 10000) # Get the number of random samples from the user, default is 10000
+    xs = np.random.uniform(x_min, x_max, amount_samples) # Generate random x samples
+    ys = np.random.uniform(y_min, y_max, amount_samples) # Generate random y samples
+    f_vals = f_vec(xs) # Evaluate the function at the random x samples
+    count_under = np.sum(ys <= f_vals) # Count how many random points are under the curve
+    area_box = (x_max - x_min) * (y_max - y_min) # Calculate the area of the bounding box
+    estimate = (count_under / amount_samples) * area_box # Calculate the Monte Carlo estimate
     cprint(f"Monte Carlo Estimate: {estimate:.5f}", "green", "on_black")
-    plot_function(f_vec, x_min, x_max, y_min, y_max,
-                  under_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y <= f_val],
-                  over_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y > f_val],
-                  two_lines=None,
-                  title="Monte Carlo Estimate of Area Under Curve")
+    plot_function(f_vec, x_min, x_max, y_min, y_max, # Plot parameters
+                  under_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y <= f_val], # For both x and y coordinates, check if the y coordinate is under the function value at that x coordinate, then plot if true
+                  over_coords=[(x, y) for x, y, f_val in zip(xs, ys, f_vals) if y > f_val], # For both x and y coordinates, check if the y coordinate is over the function value at that x coordinate, then plot if true
+                  two_lines=None, # No second function to plot
+                  title="Monte Carlo Estimate of Area Under Curve") # Title
 
-def integration_double():
-    expr1 = input(colored("Enter f1(x) (default 1/2*x+1): ", "blue", "on_black")) or "1/2*x+1"
-    expr2 = input(colored("Enter f2(x) (default (x-2)**2+0.5): ", "blue", "on_black")) or "(x-2)**2+0.5"
-    f1_vec = make_function(expr1)
+def integration_double(): # Double function integration using Monte Carlo
+    expr1 = input(colored("Enter f1(x) (default 1/2*x+1): ", "blue", "on_black")) or "1/2*x+1" # Get the function expressions from the user, default is within graded criteria (default by pressing enter without typing anything)
+    expr2 = input(colored("Enter f2(x) (default (x-2)**2+0.5): ", "blue", "on_black")) or "(x-2)**2+0.5" # Get the second function expression
+    f1_vec = make_function(expr1) # Create vectorized functions
     f2_vec = make_function(expr2)
-    x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0)
+    x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0) # Get the x, y min and max from the user, default is within graded criteria
     x_max = float(input(colored("x_max (default 4): ", "blue", "on_black")) or 4)
     y_min = float(input(colored("y_min (default 0): ", "blue", "on_black")) or 0)
     y_max = float(input(colored("y_max (default 4): ", "blue", "on_black")) or 4)
     amount_samples = int(input(colored("Number of random samples (default 10000): ", "blue", "on_black")) or 10000)
-    xs = np.random.uniform(x_min, x_max, amount_samples)
-    ys = np.random.uniform(y_min, y_max, amount_samples)
-    f1_vals = f1_vec(xs)
+    xs = np.random.uniform(x_min, x_max, amount_samples) # Generate random x samples
+    ys = np.random.uniform(y_min, y_max, amount_samples) # Generate random y samples
+    f1_vals = f1_vec(xs) # Evaluate both functions at the random x samples
     f2_vals = f2_vec(xs)
-    count_under = np.sum((ys <= f1_vals) & (ys >= f2_vals))
-    area_box = (x_max - x_min) * (y_max - y_min)
-    estimate = (count_under / amount_samples) * area_box
-    cprint(f"Monte Carlo Estimate: {estimate:.5f}", "green", "on_black")
-    plot_function(f1_vec, x_min, x_max, y_min, y_max,
-                  under_coords=[(x, y) for x, y, f1_val, f2_val in zip(xs, ys, f1_vals, f2_vals) if y <= f1_val and y >= f2_val],
-                  over_coords=[(x, y) for x, y, f1_val, f2_val in zip(xs, ys, f1_vals, f2_vals) if not (y <= f1_val and y >= f2_val)],
-                  two_lines=f2_vec,
-                  title="Monte Carlo Estimate of Area Between Two Curves")
+    count_under = np.sum((ys <= f1_vals) & (ys >= f2_vals)) # Count how many random points are between the two curves
+    area_box = (x_max - x_min) * (y_max - y_min) # Calculate the area of the bounding box
+    estimate = (count_under / amount_samples) * area_box # Calculate the Monte Carlo estimate
+    cprint(f"Monte Carlo Estimate: {estimate:.5f}", "green", "on_black") 
+    plot_function(f1_vec, x_min, x_max, y_min, y_max, # Plot parameters
+                  under_coords=[(x, y) for x, y, f1_val, f2_val in zip(xs, ys, f1_vals, f2_vals) if y <= f1_val and y >= f2_val], # For both x and y coordinates, check if the y coordinate is under the first function value and above the second function value at that x coordinate, then plot if true
+                  over_coords=[(x, y) for x, y, f1_val, f2_val in zip(xs, ys, f1_vals, f2_vals) if not (y <= f1_val and y >= f2_val)], # For both x and y coordinates, check if the y coordinate is not under the first function value and above the second function value at that x coordinate, then plot if true
+                  two_lines=f2_vec, # Second function to plot
+                  title="Monte Carlo Estimate of Area Between Two Curves") # Title
 
-def replace_sampled_pixels(img, pixels_used):
+def replace_sampled_pixels(img, pixels_used): # Replace sampled pixels in the image with red for visualization
     draw = ImageDraw.Draw(img)
     for (x, y) in pixels_used:
         draw.point((x, y), fill=(255, 0, 0))  # Replace sampled pixels with red
     img.show()
 
-def image_pixel_sampling_by_color(path):
-    num_samples = 5000
-    img = Image.open(path)
-    img = img.convert("RGB")
-    pixels = img.load()
-    width, height = img.size
-    color_counts = {}
-    pixels_used = []
-    for i in range(num_samples):
+def image_pixel_sampling_by_color(path): # Sample pixels from an image and count colors
+    num_samples = 5000 # Number of pixels to sample
+    img = Image.open(path) # Open the image
+    img = img.convert("RGB") # Ensure image is in RGB mode
+    pixels = img.load() # Load pixel data
+    width, height = img.size # Get image dimensions
+    color_counts = {} # Dictionary to store amount of each color
+    pixels_used = [] # List to store sampled pixel coordinates (for visualization, and to make sure when double counting a pixel it doesnt count it as red due to replacing it before before all samples are done)
+    for i in range(num_samples): # Sample pixels
         rand_x = random.randint(0, width - 1)
         rand_y = random.randint(0, height - 1)
-        color = pixels[rand_x, rand_y]
-        # color is an (R, G, B) tuple
-        color_counts[color] = color_counts.get(color, 0) + 1
-        pixels_used.append((rand_x, rand_y))
-    replace_sampled_pixels(img, pixels_used)
-    return color_counts
+        color = pixels[rand_x, rand_y] # color is an (R, G, B) tuple
+        color_counts[color] = color_counts.get(color, 0) + 1 # Increment the count for this color, if there is no count yet, set it to 0 first and add 1
+        pixels_used.append((rand_x, rand_y)) # Store sampled pixel coordinates
+    replace_sampled_pixels(img, pixels_used) # Visualize sampled pixels
+    return color_counts # Return the colors and amounts for the colors
 
-def image_pixel_sampling_coordinates(path):
-    num_samples = 5000
-    img = Image.open(path)
-    width, height = img.size
-    pixels_used = []
-    for i in range(num_samples):
-        rand_x = random.randint(0, width - 1)
+def image_pixel_sampling_coordinates(path): # Sample pixel coordinates from an image
+    num_samples = 5000 # Number of pixels to sample
+    img = Image.open(path) # Open the image
+    width, height = img.size # Get image dimensions
+    pixels_used = [] # List to store sampled pixel coordinates
+    for i in range(num_samples): # Sample pixels
+        rand_x = random.randint(0, width - 1) 
         rand_y = random.randint(0, height - 1)
-        pixels_used.append((rand_x, rand_y))
-    replace_sampled_pixels(img, pixels_used)
-    return pixels_used
+        pixels_used.append((rand_x, rand_y)) # Store sampled pixel coordinates
+    replace_sampled_pixels(img, pixels_used) # Visualize sampled pixels
+    return pixels_used # Return the sampled pixel coordinates
 
-def determine_area(image, target_color, total_pixels, whitelist_colors):
-    if whitelist_colors:
-        target_pixels = image.get(target_color, 0)
-        area_percentage = (target_pixels / total_pixels) * 100
-    elif not whitelist_colors:
-        target_pixels = sum(count for color, count in image.items() if color != target_color)
-        area_percentage = (target_pixels / total_pixels) * 100
-    return area_percentage
+def determine_area(image, target_color, total_pixels, whitelist_colors): # Determine area percentage of target color in sampled image data
+    if whitelist_colors: # If only counting target color
+        target_pixels = image.get(target_color, 0) # Get the count of target color pixels, default to 0 if not found
+        area_percentage = (target_pixels / total_pixels) * 100 # Calculate area percentage
+    elif not whitelist_colors: # If counting all colors except target color
+        target_pixels = sum(count for color, count in image.items() if color != target_color) # Sum counts of all colors except target color
+        area_percentage = (target_pixels / total_pixels) * 100 # Calculate area percentage
+    return area_percentage # Return the area percentage
 
-def within_circle(x, y, center_x, center_y, radius):
-    within = (x - center_x) ** 2 + (y - center_y) ** 2 <= radius ** 2
-    return within
+def within_circle(x, y, center_x, center_y, radius): # Check if a point is within a circle
+    within = (x - center_x) ** 2 + (y - center_y) ** 2 <= radius ** 2 # Calculate if the point is within the circle using the circle equation using squared distances
+    return within # Return the result
 
-def time_until_outcome(image_path, target_color):
-    time_until_pixel_found = []
-    pixels_used = []
-    img = Image.open(image_path)
-    for i in range(20000):
-        current_pixel_color = None
-        time_count = 0
-        while current_pixel_color != target_color:
+def time_until_outcome(image_path, target_color): # Time until a specific color pixel is found in an image
+    time_until_pixel_found = [] # List to store time counts for each sample
+    img = Image.open(image_path) # Open the image
+    for i in range(20000): # Sample pixels until target color is found
+        current_pixel_color = None # Initialize current pixel color
+        time_count = 0 # Initialize time count (amount of samples taken until target color is found)
+        while current_pixel_color != target_color: # Keep sampling until the target color is found
             rand_x = random.randint(0, img.size[0] - 1)
             rand_y = random.randint(0, img.size[1] - 1)
-            current_pixel_color = img.convert("RGB").load()[rand_x, rand_y]
-            time_count += 1
-        time_until_pixel_found.append(time_count)
-        pixels_used.append((rand_x, rand_y))
-    with open("time_until_outcome_samples.txt", "w") as f:
-        for time_count in time_until_pixel_found:
+            current_pixel_color = img.convert("RGB").load()[rand_x, rand_y] # Get the color of the randomly sampled pixel
+            time_count += 1 # Increment time count, then loop if the color is not the target color
+        time_until_pixel_found.append(time_count) # Store the time count for this sample
+    with open("time_until_outcome_samples.txt", "w") as f: # Write the time counts to a text file
+        for time_count in time_until_pixel_found: # Loop through each time count
             f.write(f"{time_count}\n")
-    return time_until_pixel_found
+    return time_until_pixel_found # Return the list of time counts
 
-welcome()
-menu()
-while True:
-    if menu_num == 1:
-        integration_single()
+welcome() # Display welcome message
+menu() # Display menu
+while True: # Main program loop
+    if menu_num == 1: # Execute the selected option
+        integration_single() 
     elif menu_num == 2:
         integration_double()
     elif menu_num == 3:
-        bolt_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/2.0 Lightning Bolt/bolt.png"), (255, 255, 54), 5000, True)
-        cprint(f"Estimated area of lightning bolt: {bolt_percentage:.2f}%", "green", "on_black")
+        bolt_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/2.0 Lightning Bolt/bolt.png"), (255, 255, 54), 5000, True) # Calculate area percentage of lightning bolt color using whitelist
+        cprint(f"Estimated area of lightning bolt: {bolt_percentage:.2f}%", "green", "on_black") # Display the result
     elif menu_num == 4:
-        target_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.1.png"), (255, 255, 255), 5000, False)
+        target_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.1.png"), (255, 255, 255), 5000, False) # Calculate area percentage of non-background color using blacklist
         cprint(f"Estimated area of dart board (non-background): {target_percentage:.2f}%", "green", "on_black")
     elif menu_num == 5:
-        target_image = Image.open("Student Resources/3.0 Dart Board/3.1.png")
-        r3 = target_image.size[0] / 2 / 5 * 3
-        center_x, center_y = target_image.size[0] / 2, target_image.size[1] / 2
-        within_r3 = sum(1 for x, y in image_pixel_sampling_coordinates("Student Resources/3.0 Dart Board/3.1.png") if within_circle(x, y, center_x, center_y, r3))
-        cprint(f"Estimated probability of scoring 10 or more: {(within_r3 / 5000) * 100:.2f}%", "green", "on_black")
+        target_image = Image.open("Student Resources/3.0 Dart Board/3.1.png") # Open the dart board image
+        r3 = target_image.size[0] / 2 / 5 * 3 # Calculate radius for scoring 10 or more (3/5 of the dart board radius), each ring's thickness is 1/5 of the radius
+        center_x, center_y = target_image.size[0] / 2, target_image.size[1] / 2 # Calculate center of the dart board
+        within_r3 = sum(1 for x, y in image_pixel_sampling_coordinates("Student Resources/3.0 Dart Board/3.1.png") if within_circle(x, y, center_x, center_y, r3)) # Count how many sampled pixels are within the radius for scoring 10 or more
+        cprint(f"Estimated probability of scoring 10 or more: {(within_r3 / 5000) * 100:.2f}%", "green", "on_black") # Display the result
     elif menu_num == 6:
-        target_colors = [(59, 163, 234), (247, 188, 43), (138, 219, 138), (238, 193, 165), (237, 49, 25), (0, 0, 0)]
-        target_colors_words = ["Blue", "Gold", "Green", "Peach", "Red", "Black (Text)"]
-        determine_area_each_color_counts = image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.3.png")
-        total_sampled_pixels = sum(determine_area_each_color_counts.values())
-        for color, color_word in zip(target_colors, target_colors_words):
-            area_percentage = determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True)
-            cprint(f"Estimated area of color {color_word}: {area_percentage:.2f}%", "green", "on_black")
+        target_colors = [(59, 163, 234), (247, 188, 43), (138, 219, 138), (238, 193, 165), (237, 49, 25), (0, 0, 0)] # Define target colors to analyze
+        target_colors_words = ["Blue", "Gold", "Green", "Peach", "Red", "Black (Text)"] # Corresponding color names
+        determine_area_each_color_counts = image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.3.png") # Sample the image and get color counts
+        total_sampled_pixels = sum(determine_area_each_color_counts.values()) # Calculate total sampled pixels
+        for color, color_word in zip(target_colors, target_colors_words): # Loop through each target color and its name
+            area_percentage = determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) # Calculate area percentage for the target color using whitelist
+            cprint(f"Estimated area of color {color_word}: {area_percentage:.2f}%", "green", "on_black") # Display the result
         cprint("Estimated area of background (not counted colors): {:.2f}%".format(100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)), "green", "on_black")
     elif menu_num == 7:
-        time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0))
-        plt.hist(time_count)
-        plt.title('Distribution of Values')
-        plt.xlabel('Value')
-        plt.ylabel('Frequency')
+        time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0)) # Get time until outcome data
+        plt.hist(time_count) # Plot histogram of time counts
+        plt.title("Distribution of Values")
+        plt.xlabel("Value")
+        plt.ylabel("Frequency")
         plt.show()
     elif menu_num == 8:
-        time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0))
+        time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0)) # Get time until outcome data
         averages = []
-        for i in range(0, len(time_count), 20):
-            group = time_count[i:i+20]
-            group_average = sum(group) / len(group)
-            averages.append(group_average)
-        plt.hist(averages, bins=20)
-        plt.title('Distribution of Averages (Groups of 20)')
-        plt.xlabel('Average Value')
-        plt.ylabel('Frequency')
+        for i in range(0, len(time_count), 20): # Calculate averages of groups of 20 time counts for normal distribution
+            group = time_count[i:i+20] # Get the current group of 20
+            group_average = sum(group) / len(group) # Calculate the average of the group
+            averages.append(group_average) # Store the average
+        plt.hist(averages, bins=20) # Plot histogram of averages
+        plt.title("Distribution of Averages (Groups of 20)")
+        plt.xlabel("Average Value")
+        plt.ylabel("Frequency")
         plt.show()
-    menu()
+    menu() # Display menu again after completing the selected option
