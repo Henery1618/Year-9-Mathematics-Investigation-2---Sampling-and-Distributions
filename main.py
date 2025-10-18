@@ -51,14 +51,13 @@ def menu(): # Menu system
     cprint("Please select an option:", "green", "on_black")
     cprint("1. Approximating Integration using Monte Carlo Estimate", "green", "on_black")
     cprint("2. Approximating Integration between two functions using Monte Carlo Estimate", "green", "on_black")
-    cprint("3. Sampling Pixels in an Image", "green", "on_black")
-    cprint("4. Determine Area of Lightning Bolt Image", "green", "on_black")
-    cprint("5. Determine Area of Dart Board Image", "green", "on_black")
-    cprint("6. Probability of Scoring 10 or More on Dart Board", "green", "on_black")
-    cprint("7. Determine Area of Each Color in an Image", "green", "on_black")
+    cprint("3. Determine Area of Lightning Bolt Image", "green", "on_black")
+    cprint("4. Determine Area of Dart Board Image", "green", "on_black")
+    cprint("5. Probability of Scoring 10 or More on Dart Board", "green", "on_black")
+    cprint("6. Determine Area of Each Color in an Image", "green", "on_black")
     cprint("Type 'quit' anytime to exit the program.", "red", "on_black")
     menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
-    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 7:
+    while not menu_num.isnumeric() or int(menu_num) < 1 or int(menu_num) > 6:
         cprint("Please enter a valid choice.", "red", "on_black")
         menu_num = quit(input(colored("Enter your choice: ", "blue", "on_black"))) # Get the user's choice
     menu_num = int(menu_num)
@@ -188,22 +187,6 @@ def image_pixel_sampling_coordinates(path, replace_color):
         img.show()
     return pixels_used
 
-def plot_color_distribution(color_counts, top_n=12): # For debugging
-    sorted_colors = sorted(color_counts.items(), key=lambda x: x[1], reverse=True)
-    top = sorted_colors[:top_n]
-    labels = ["#%02x%02x%02x" % c for c, _ in top]
-    counts = [cnt for _, cnt in top]
-    bar_colors = [(c[0] / 255, c[1] / 255, c[2] / 255) for c, _ in top]
-
-    plt.figure(figsize=(max(8, len(labels) * 0.4), 5))
-    x = np.arange(len(labels))
-    plt.bar(x, counts, color=bar_colors, edgecolor='black', linewidth=0.8)
-    plt.xticks(x, labels, rotation=90)
-    plt.title(f"Top {len(labels)} sampled colors")
-    plt.ylabel("Sample count")
-    plt.tight_layout()
-    plt.show()
-
 def determine_area(image, target_color, total_pixels, whitelist_colors):
     if whitelist_colors:
         target_pixels = image.get(target_color, 0)
@@ -225,24 +208,18 @@ while True:
     elif menu_num == 2:
         integration_double()
     elif menu_num == 3:
-        path = input(colored(f"Enter the image file path: ", "blue", "on_black"))
-        color_distribution = image_pixel_sampling_by_color(path, True)
-        plot_color_distribution(color_distribution)
-        for color, count in sorted(color_distribution.items(), key=lambda x: x[1], reverse=True):
-            print(f"Color {color}: {count} samples")
-    elif menu_num == 4:
         bolt_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/2.0 Lightning Bolt/bolt.png", True), (255, 255, 54), 5000, True)
         cprint(f"Estimated area of lightning bolt: {bolt_percentage:.2f}%", "green", "on_black")
-    elif menu_num == 5:
+    elif menu_num == 4:
         target_percentage = determine_area(image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.1.png", True), (255, 255, 255), 5000, False)
         cprint(f"Estimated area of dart board (non-background): {target_percentage:.2f}%", "green", "on_black")
-    elif menu_num == 6:
+    elif menu_num == 5:
         target_image = Image.open("Student Resources/3.0 Dart Board/3.1.png")
         r3 = target_image.size[0] / 2 / 5 * 3
         center_x, center_y = target_image.size[0] / 2, target_image.size[1] / 2
         within_r3 = sum(1 for x, y in image_pixel_sampling_coordinates("Student Resources/3.0 Dart Board/3.1.png", True) if within_circle(x, y, center_x, center_y, r3))
         cprint(f"Estimated probability of scoring 10 or more: {(within_r3 / 5000) * 100:.2f}%", "green", "on_black")
-    elif menu_num == 7:
+    elif menu_num == 6:
         target_colors = [(59, 163, 234), (247, 188, 43), (138, 219, 138), (238, 193, 165), (237, 49, 25), (0, 0, 0)]
         target_colors_words = ["Blue", "Gold", "Green", "Peach", "Red", "Black (Text)"]
         determine_area_each_color_counts = image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.3.png", True)
