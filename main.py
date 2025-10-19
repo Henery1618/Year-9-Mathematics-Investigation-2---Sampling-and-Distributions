@@ -89,7 +89,7 @@ def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, 
 
     if two_lines: # If there is a second function to plot
         ys2 = two_lines(xs)
-        plt.plot(xs, ys2, color="blue", label="y = g(x)")
+        plt.plot(xs, ys2, color="blue", label="y = f2(x)")
 
     if over_coords: # If there are points above the curve
         over_x, over_y = separate_coordinates(over_coords) # Separate x and y coordinates
