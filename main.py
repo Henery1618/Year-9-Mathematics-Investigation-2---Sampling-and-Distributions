@@ -80,7 +80,7 @@ def separate_coordinates(coordinate_list): # Separate x and y coordinates from a
 
     return x_vals,y_vals # Return separate x and y lists
 
-def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, two_lines, title="Monte Carlo Estimate of Area Under Curve"): # Plot the function and sampled points
+def plot_function(f_vec, x_min, x_max, y_min, y_max, under_coords, over_coords, two_lines, title): # Plot the function and sampled points
     xs = np.linspace(x_min, x_max, 500) # Generate x values
     ys = f_vec(xs) # Generate y values
 
@@ -187,12 +187,12 @@ def image_pixel_sampling_coordinates(path): # Sample pixel coordinates from an i
     replace_sampled_pixels(img, pixels_used) # Visualize sampled pixels
     return pixels_used # Return the sampled pixel coordinates
 
-def determine_area(image, target_color, total_pixels, whitelist_colors): # Determine area percentage of target color in sampled image data
+def determine_area(image_color_data, target_color, total_pixels, whitelist_colors): # Determine area percentage of target color in sampled image data
     if whitelist_colors: # If only counting target color
-        target_pixels = image.get(target_color, 0) # Get the count of target color pixels, default to 0 if not found
+        target_pixels = image_color_data.get(target_color, 0) # Get the count of target color pixels, default to 0 if not found
         area_percentage = (target_pixels / total_pixels) * 100 # Calculate area percentage
     elif not whitelist_colors: # If counting all colors except target color
-        target_pixels = sum(count for color, count in image.items() if color != target_color) # Sum counts of all colors except target color
+        target_pixels = sum(count for color, count in image_color_data.items() if color != target_color) # Sum counts of all colors except target color
         area_percentage = (target_pixels / total_pixels) * 100 # Calculate area percentage
     return area_percentage # Return the area percentage
 
@@ -203,7 +203,7 @@ def within_circle(x, y, center_x, center_y, radius): # Check if a point is withi
 def time_until_outcome(image_path, target_color): # Time until a specific color pixel is found in an image
     time_until_pixel_found = [] # List to store time counts for each sample
     img = Image.open(image_path) # Open the image
-    for i in range(20000): # Sample pixels until target color is found
+    for i in range(20000): # Sample pixels until target color is found 20000 times
         current_pixel_color = None # Initialize current pixel color
         time_count = 0 # Initialize time count (amount of samples taken until target color is found)
         while current_pixel_color != target_color: # Keep sampling until the target color is found
@@ -247,21 +247,46 @@ while True: # Main program loop
         cprint("Estimated area of background (not counted colors): {:.2f}%".format(100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)), "green", "on_black")
     elif menu_num == 7:
         time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0)) # Get time until outcome data
-        plt.hist(time_count) # Plot histogram of time counts
+        # time_count contains integer sample counts (1,2,3,...). Use integer-centered bins
+        if len(time_count) > 0:
+            min_val = min(time_count)
+            max_val = max(time_count)
+            # create bins so each integer value is centered in a bar
+            bins = np.arange(min_val - 0.5, max_val + 1.5, 1)
+            plt.hist(time_count, bins=bins, edgecolor='black')
+            # set x-ticks to the integer values
+            plt.xticks(np.arange(min_val, max_val + 1, 1))
+        else:
+            plt.hist(time_count)
         plt.title("Distribution of Values")
         plt.xlabel("Value")
         plt.ylabel("Frequency")
+        plt.grid(axis='y', alpha=0.75)
         plt.show()
     elif menu_num == 8:
         time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0)) # Get time until outcome data
         averages = []
         for i in range(0, len(time_count), 20): # Calculate averages of groups of 20 time counts for normal distribution
             group = time_count[i:i+20] # Get the current group of 20
+            if len(group) == 0:
+                continue
             group_average = sum(group) / len(group) # Calculate the average of the group
             averages.append(group_average) # Store the average
-        plt.hist(averages, bins=20) # Plot histogram of averages
+        # Use bins of width 0.1 so bars represent one decimal place increments
+        if len(averages) > 0:
+            min_avg = min(averages)
+            max_avg = max(averages)
+            # Create bin edges spaced by 0.1 and center bars on one-decimal values
+            bins = np.arange(math.floor(min_avg*10)/10 - 0.05, math.ceil(max_avg*10)/10 + 0.15, 0.1)
+            plt.hist(averages, bins=bins, edgecolor='black')
+            # set x-ticks at one-decimal increments
+            xticks = np.round(np.arange(math.floor(min_avg*10)/10, math.ceil(max_avg*10)/10 + 0.1, 0.1), 1)
+            plt.xticks(xticks)
+        else:
+            plt.hist(averages, bins=20)
         plt.title("Distribution of Averages (Groups of 20)")
         plt.xlabel("Average Value")
         plt.ylabel("Frequency")
+        plt.grid(axis='y', alpha=0.75)
         plt.show()
     menu() # Display menu again after completing the selected option
