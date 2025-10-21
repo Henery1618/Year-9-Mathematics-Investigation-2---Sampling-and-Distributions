@@ -113,7 +113,7 @@ def integration_single(): # Single function integration using Monte Carlo
     x_min = float(input(colored("x_min (default 0): ", "blue", "on_black")) or 0) # Get the x, y min and max from the user, default is within graded criteria
     x_max = float(input(colored("x_max (default 3): ", "blue", "on_black")) or 3)
     y_min = float(input(colored("y_min (default 0): ", "blue", "on_black")) or 0)
-    y_max = float(input(colored("y_max (default 10): ", "blue", "on_black")) or 10)
+    y_max = float(input(colored("y_max (default 9): ", "blue", "on_black")) or 9)
     amount_samples = int(input(colored("Number of random samples (default 10000): ", "blue", "on_black")) or 10000) # Get the number of random samples from the user, default is 10000
     xs = np.random.uniform(x_min, x_max, amount_samples) # Generate random x samples
     ys = np.random.uniform(y_min, y_max, amount_samples) # Generate random y samples
@@ -239,12 +239,14 @@ while True: # Main program loop
     elif menu_num == 6:
         target_colors = [(59, 163, 234), (247, 188, 43), (138, 219, 138), (238, 193, 165), (237, 49, 25), (0, 0, 0)] # Define target colors to analyze
         target_colors_words = ["Blue", "Gold", "Green", "Peach", "Red", "Black (Text)"] # Corresponding color names
+        img = Image.open("Student Resources/3.0 Dart Board/3.3.png")
         determine_area_each_color_counts = image_pixel_sampling_by_color("Student Resources/3.0 Dart Board/3.3.png") # Sample the image and get color counts
         total_sampled_pixels = sum(determine_area_each_color_counts.values()) # Calculate total sampled pixels
+        total_pixels = img.width * img.height # Calculate total pixels in the image
         for color, color_word in zip(target_colors, target_colors_words): # Loop through each target color and its name
             area_percentage = determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) # Calculate area percentage for the target color using whitelist
-            cprint(f"Estimated area of color {color_word}: {area_percentage:.2f}%", "green", "on_black") # Display the result
-        cprint("Estimated area of background (not counted colors): {:.2f}%".format(100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)), "green", "on_black")
+            cprint(f"Estimated area of color {color_word}: {area_percentage:.2f}%, or {area_percentage / 100 * total_pixels:.2f} pixels", "green", "on_black") # Display the result
+        cprint("Estimated area of background (not counted colors): {:.2f}%".format(100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)) + " or {:.2f} pixels".format((100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)) / 100 * total_pixels), "green", "on_black")
     elif menu_num == 7:
         time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0)) # Get time until outcome data
         # time_count contains integer sample counts (1,2,3,...). Use integer-centered bins
