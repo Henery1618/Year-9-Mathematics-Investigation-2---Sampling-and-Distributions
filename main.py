@@ -205,7 +205,7 @@ def time_until_outcome(image_path, target_color): # Time until a specific color 
     w, h = img.size
     pix = img.load() # Load pixel data
     results = [] # List to store time counts
-    for _ in range(20000): # Perform 20000 trials
+    for i in range(20000): # Perform 20000 trials
         count = 0
         while True:
             count += 1
@@ -214,6 +214,9 @@ def time_until_outcome(image_path, target_color): # Time until a specific color 
             if pix[x, y] == target_color:
                 results.append(count)
                 break
+    with open("time_until_outcome_results.txt", "w") as f: # Save results to a text file
+        for result in results:
+            f.write(f"{result}\n")
     return results
 
 welcome() # Display welcome message
