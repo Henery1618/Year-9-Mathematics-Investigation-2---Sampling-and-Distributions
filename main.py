@@ -201,21 +201,20 @@ def within_circle(x, y, center_x, center_y, radius): # Check if a point is withi
     return within # Return the result
 
 def time_until_outcome(image_path, target_color): # Time until a specific color pixel is found in an image
-    time_until_pixel_found = [] # List to store time counts for each sample
-    img = Image.open(image_path) # Open the image
-    for i in range(20000): # Sample pixels until target color is found 20000 times
-        current_pixel_color = None # Initialize current pixel color
-        time_count = 0 # Initialize time count (amount of samples taken until target color is found)
-        while current_pixel_color != target_color: # Keep sampling until the target color is found
-            rand_x = random.randint(0, img.size[0] - 1)
-            rand_y = random.randint(0, img.size[1] - 1)
-            current_pixel_color = img.convert("RGB").load()[rand_x, rand_y] # Get the color of the randomly sampled pixel
-            time_count += 1 # Increment time count, then loop if the color is not the target color
-        time_until_pixel_found.append(time_count) # Store the time count for this sample
-    with open("time_until_outcome_samples.txt", "w") as f: # Write the time counts to a text file
-        for time_count in time_until_pixel_found: # Loop through each time count
-            f.write(f"{time_count}\n")
-    return time_until_pixel_found # Return the list of time counts
+    img = Image.open(image_path).convert('RGB') # Open and convert the image to RGB
+    w, h = img.size
+    pix = img.load() # Load pixel data
+    results = [] # List to store time counts
+    for _ in range(20000): # Perform 20000 trials
+        count = 0
+        while True:
+            count += 1
+            x = random.randint(0, w - 1)
+            y = random.randint(0, h - 1)
+            if pix[x, y] == target_color:
+                results.append(count)
+                break
+    return results
 
 welcome() # Display welcome message
 menu() # Display menu
@@ -249,20 +248,19 @@ while True: # Main program loop
         cprint("Estimated area of background (not counted colors): {:.2f}%".format(100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)) + " or {:.2f} pixels".format((100 - sum(determine_area(determine_area_each_color_counts, color, total_sampled_pixels, True) for color in target_colors)) / 100 * total_pixels), "green", "on_black")
     elif menu_num == 7:
         time_count = time_until_outcome("Student Resources/4.0 Distributions/0.5_2.png", (255, 0, 0)) # Get time until outcome data
-        # time_count contains integer sample counts (1,2,3,...). Use integer-centered bins
-        if len(time_count) > 0:
-            min_val = min(time_count)
-            max_val = max(time_count)
-            # create bins so each integer value is centered in a bar
-            bins = np.arange(min_val - 0.5, max_val + 1.5, 1)
-            plt.hist(time_count, bins=bins, edgecolor='black')
-            # set x-ticks to the integer values
-            plt.xticks(np.arange(min_val, max_val + 1, 1))
-        else:
-            plt.hist(time_count)
-        plt.title("Distribution of Values")
-        plt.xlabel("Value")
-        plt.ylabel("Frequency")
+        max_trial = max(time_count)
+        # bins from 0.5 to max_trial+0.5 to centre integer bins
+        bins = [i - 0.5 for i in range(1, max_trial + 2)]
+        plt.figure(figsize=(8, 6))
+        counts, edges, patches = plt.hist(time_count, bins=bins, color='blue', edgecolor='black')
+        xticks = list(range(1, max_trial + 1))
+        plt.xticks(xticks)
+        for count, left_edge, patch in zip(counts, edges[:-1], patches):
+            center = left_edge + 0.5
+            plt.text(center, count + max(counts) * 0.01, f'{int(count)}', ha='center', va='bottom', fontsize=8)
+        plt.xlabel('Number of Trials Needed to Find (255, 0, 0)')
+        plt.ylabel('Frequency')
+        plt.title('Histogram of Trials Needed')
         plt.grid(axis='y', alpha=0.75)
         plt.show()
     elif menu_num == 8:
@@ -275,17 +273,15 @@ while True: # Main program loop
             group_average = sum(group) / len(group) # Calculate the average of the group
             averages.append(group_average) # Store the average
         # Use bins of width 0.1 so bars represent one decimal place increments
-        if len(averages) > 0:
-            min_avg = min(averages)
-            max_avg = max(averages)
-            # Create bin edges spaced by 0.1 and center bars on one-decimal values
-            bins = np.arange(math.floor(min_avg*10)/10 - 0.05, math.ceil(max_avg*10)/10 + 0.15, 0.1)
-            plt.hist(averages, bins=bins, edgecolor='black')
-            # set x-ticks at one-decimal increments
-            xticks = np.round(np.arange(math.floor(min_avg*10)/10, math.ceil(max_avg*10)/10 + 0.1, 0.1), 1)
-            plt.xticks(xticks)
-        else:
-            plt.hist(averages, bins=20)
+        # Plotting histogram
+        min_avg = min(averages)
+        max_avg = max(averages)
+        # Create bin edges spaced by 0.1 and center bars on one-decimal values
+        bins = np.arange(math.floor(min_avg*10)/10 - 0.05, math.ceil(max_avg*10)/10 + 0.15, 0.1)
+        plt.hist(averages, bins=bins, edgecolor='black')
+        # set x-ticks at one-decimal increments
+        xticks = np.round(np.arange(math.floor(min_avg*10)/10, math.ceil(max_avg*10)/10 + 0.1, 0.1), 1)
+        plt.xticks(xticks)
         plt.title("Distribution of Averages (Groups of 20)")
         plt.xlabel("Average Value")
         plt.ylabel("Frequency")
